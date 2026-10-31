@@ -1,0 +1,219 @@
+{% extends 'layout_app.html' %}
+{% from '_macros.html' import icon, flashes %}
+{% block title %}My Profile{% endblock %}
+{% block heading %}My Profile{% endblock %}
+{% block sub %}Manage your account details and security settings{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+
+  <!-- ── Left Column: Avatar Card + Stats ── -->
+  <div class="profile-sidebar">
+
+    <!-- Avatar / Identity Card -->
+    <div class="card profile-hero">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar-ring">
+          <div class="profile-avatar">{{ current_user.initials }}</div>
+        </div>
+        <div class="profile-avatar-badge">{{ icon('shield') }}</div>
+      </div>
+      <h2 class="profile-name">{{ current_user.full_name }}</h2>
+      <p class="profile-email muted">{{ current_user.email }}</p>
+      <div class="profile-member-since">
+        {{ icon('clock') }}
+        <span>Member since {{ current_user.created_at.strftime('%B %Y') }}</span>
+      </div>
+    </div>
+
+    <!-- Scan Stats -->
+    <div class="card profile-stats-card">
+      <div class="card-title"><h3>Scan Statistics</h3></div>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="profile-stat-icon" style="color:var(--blue)">{{ icon('layers') }}</div>
+          <div>
+            <b class="profile-stat-num">{{ total_scans }}</b>
+            <span class="muted">Total Scans</span>
+          </div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-icon" style="color:var(--ok)">{{ icon('check') }}</div>
+          <div>
+            <b class="profile-stat-num">{{ completed_scans }}</b>
+            <span class="muted">Completed</span>
+          </div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-icon" style="color:var(--cyan)">{{ icon('activity') }}</div>
+          <div>
+            <b class="profile-stat-num">{{ active_scans }}</b>
+            <span class="muted">Active Now</span>
+          </div>
+        </div>
+      </div>
+      {% if last_scan %}
+      <div class="profile-last-scan">
+        <span class="muted" style="font-size:.8rem">Last scan</span>
+        <a href="{{ url_for('scanner.scan_results', scan_id=last_scan.id) }}" class="profile-last-scan-link">
+          {{ icon('globe') }}
+          <span class="profile-last-scan-url">{{ last_scan.target_url }}</span>
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- ── Right Column: Edit Forms ── -->
+  <div class="profile-forms">
+
+    <!-- Account Details -->
+    <div class="card profile-section" id="profile-details">
+      <div class="card-title">
+        <h3>{{ icon('user') }} Account Details</h3>
+      </div>
+      <form method="post" action="{{ url_for('profile.update_profile') }}" id="profileDetailsForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="profile-form-grid">
+          <div class="form-group">
+            <label for="full_name">Full Name</label>
+            <input class="input" type="text" id="full_name" name="full_name"
+                   value="{{ current_user.full_name }}" minlength="2" maxlength="80" required
+                   placeholder="Your full name" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input class="input" type="email" id="email" name="email"
+                   value="{{ current_user.email }}" maxlength="255" required
+                   placeholder="you@example.com" autocomplete="email">
+          </div>
+        </div>
+        <div class="profile-form-actions">
+          <button class="btn btn-primary" type="submit" id="saveProfileBtn">
+            {{ icon('check') }} Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Change Password -->
+    <div class="card profile-section" id="profile-security">
+      <div class="card-title">
+        <h3>{{ icon('lock') }} Change Password</h3>
+      </div>
+      <form method="post" action="{{ url_for('profile.change_password') }}" id="passwordForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+          <label for="current_password">Current Password</label>
+          <div class="input-eye-wrap">
+            <input class="input" type="password" id="current_password" name="current_password"
+                   required placeholder="Enter current password" autocomplete="current-password">
+            <button type="button" class="btn-eye" aria-label="Toggle password visibility"
+                    onclick="togglePw('current_password', this)">{{ icon('zap') }}</button>
+          </div>
+        </div>
+        <div class="profile-form-grid">
+          <div class="form-group">
+            <label for="new_password">New Password</label>
+            <div class="input-eye-wrap">
+              <input class="input" type="password" id="new_password" name="new_password"
+                     required minlength="8" placeholder="New password"
+                     autocomplete="new-password" oninput="checkPwStrength(this.value)">
+              <button type="button" class="btn-eye" aria-label="Toggle password visibility"
+                      onclick="togglePw('new_password', this)">{{ icon('zap') }}</button>
+            </div>
+            <!-- Password strength bar -->
+            <div class="pw-strength-bar" id="pwStrengthBar" aria-hidden="true">
+              <div class="pw-strength-fill" id="pwStrengthFill"></div>
+            </div>
+            <span class="pw-strength-label muted" id="pwStrengthLabel"></span>
+          </div>
+          <div class="form-group">
+            <label for="confirm_password">Confirm New Password</label>
+            <div class="input-eye-wrap">
+              <input class="input" type="password" id="confirm_password" name="confirm_password"
+                     required minlength="8" placeholder="Repeat new password"
+                     autocomplete="new-password">
+              <button type="button" class="btn-eye" aria-label="Toggle password visibility"
+                      onclick="togglePw('confirm_password', this)">{{ icon('zap') }}</button>
+            </div>
+          </div>
+        </div>
+        <ul class="pw-hints">
+          <li id="hint-len">{{ icon('x') }} At least 8 characters</li>
+          <li id="hint-lower">{{ icon('x') }} A lowercase letter</li>
+          <li id="hint-upper">{{ icon('x') }} An uppercase letter</li>
+          <li id="hint-num">{{ icon('x') }} A number</li>
+        </ul>
+        <div class="profile-form-actions">
+          <button class="btn btn-primary" type="submit" id="changePasswordBtn">
+            {{ icon('key') }} Update Password
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="card profile-section profile-danger" id="profile-danger">
+      <div class="card-title">
+        <h3>{{ icon('alert') }} Danger Zone</h3>
+      </div>
+      <p class="muted" style="margin:0 0 1.2rem">
+        Signing out will end your current session on this device.
+      </p>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger" type="submit" id="signOutBtn">
+          {{ icon('logout') }} Sign Out
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.classList.toggle('active');
+}
+
+function checkPwStrength(pw) {
+  const hints = {
+    'hint-len':   pw.length >= 8,
+    'hint-lower': /[a-z]/.test(pw),
+    'hint-upper': /[A-Z]/.test(pw),
+    'hint-num':   /\d/.test(pw),
+  };
+  let score = Object.values(hints).filter(Boolean).length;
+
+  // Update hint icons
+  Object.entries(hints).forEach(([id, ok]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle('ok', ok);
+    // swap svg icon inside hint <li>
+    const svg = el.querySelector('svg');
+    if (svg) {
+      svg.innerHTML = ok
+        ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
+        : '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+    }
+  });
+
+  // Strength bar
+  const fill  = document.getElementById('pwStrengthFill');
+  const label = document.getElementById('pwStrengthLabel');
+  const pct   = (score / 4) * 100;
+  const colors = ['', '#dc2626', '#ea580c', '#d97706', '#16a34a'];
+  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+  if (fill)  { fill.style.width = pct + '%'; fill.style.background = colors[score] || ''; }
+  if (label) { label.textContent = pw ? labels[score] : ''; }
+}
+</script>
+{% endblock %}

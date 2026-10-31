@@ -1,0 +1,10 @@
+{% extends 'layout_public.html' %}
+{% from '_macros.html' import icon %}
+{% block title %}Error {{ code }} · WebGuard AI{% endblock %}
+{% block body %}
+<div class="auth-wrap"><div class="card auth-card" style="text-align:center">
+  <div class="brand-mark" style="margin:0 auto 1.2rem;color:var(--crit)">{{ icon('alert') }}</div>
+  <h1>{{ code }}</h1><p class="lead">{{ message }}</p>
+  <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Back to home</a>
+</div></div>
+{% endblock %}

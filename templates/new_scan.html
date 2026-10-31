@@ -1,0 +1,74 @@
+{% extends 'layout_app.html' %}
+{% from '_macros.html' import icon %}
+{% block title %}New Scan{% endblock %}
+{% block heading %}New Website Scan{% endblock %}
+{% block sub %}Authorized targets only · non-destructive checks{% endblock %}
+{% block content %}
+<div class="grid g-main">
+  <div>
+    <div class="card" id="formCard">
+      <div class="card-title"><h3>Scan configuration</h3></div>
+      <form id="scanForm" novalidate>
+        <div class="field"><label for="url">Website URL</label>
+          <input class="input" id="url" type="url" inputmode="url" placeholder="https://testphp.vulnweb.com" autocomplete="off" required>
+          <div class="field-error" id="urlErr"></div></div>
+        <div class="field"><label for="scanType">Scan type</label>
+          <select class="input" id="scanType">
+            {% for k, p in profiles.items() %}<option value="{{ k }}" {{ 'selected' if k == 'standard' }}>{{ p.label }} — up to {{ p.max_pages }} page{{ 's' if p.max_pages > 1 }}{{ ', active injection checks' if p.active else ', passive checks only' }}</option>{% endfor %}
+          </select></div>
+        <div class="field"><label for="extra">Additional endpoints <span class="faint">(optional, one per line, same host)</span></label>
+          <textarea class="input" id="extra" placeholder="/rest/products/search?q=test&#10;/search.php?test=query"></textarea>
+          <div class="field-hint">Useful for single-page apps such as OWASP Juice Shop, where the crawler cannot see API URLs.</div></div>
+        <div class="field"><label class="check"><input type="checkbox" id="auth"><span class="box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="text">I confirm that I own this website or have <b>explicit written authorization</b> to perform security testing on it.</span></label>
+          <div class="field-error" id="authErr"></div></div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap">
+          <button class="btn btn-primary" type="submit" id="startBtn">Start scan</button>
+          <button class="btn btn-danger" type="button" id="cancelBtn" disabled>Cancel scan</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" id="liveCard" style="margin-top:1.6rem;display:none">
+      <div class="card-title"><h3>Live scan progress</h3><span id="liveStatus"></span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:.7rem;font-weight:700"><span id="liveTarget" class="url-cell" style="max-width:70%"></span><span id="livePct">0%</span></div>
+      <div class="progress" id="liveBar"><i></i></div>
+      <div class="steps" id="steps"></div>
+      <div class="well" style="margin-top:1.4rem"><div class="faint" style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem">Current activity</div><div class="activity" id="liveActivity">Queued…</div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.2rem;text-align:center">
+        <div class="well"><b id="livePages" style="font-size:1.3rem">0</b><div class="faint" style="font-size:.72rem">Pages</div></div>
+        <div class="well"><b id="liveTests" style="font-size:1.3rem">0</b><div class="faint" style="font-size:.72rem">Tests run</div></div>
+        <div class="well"><b id="liveFind" style="font-size:1.3rem">–</b><div class="faint" style="font-size:.72rem">Findings</div></div></div>
+      <div class="console well" id="console" style="margin-top:1.2rem"></div>
+      <div id="doneActions" style="margin-top:1.2rem;display:none"><a class="btn btn-primary" id="resultsLink" href="#">View results</a></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-title"><h3>{{ 'Target Presets & Labs' if allow_any else 'Authorized targets' }}</h3></div>
+      {% if allow_any %}
+      <div class="notice" style="margin-bottom:1rem;border-color:var(--cyan);background:rgba(0,240,255,0.06)">
+        <b style="color:var(--cyan)">⚡ Universal Target Mode Active:</b> You can scan <b>any website URL</b> (e.g. claude.ai, google.com, test sites, or custom web apps).
+      </div>
+      {% endif %}
+      {% if lab %}<div class="notice" style="margin-bottom:1rem"><b>Lab mode is ON.</b> Local lab hosts are permitted: {{ lab_hosts|join(', ') }} (ports 3000, 5001, 8000, 8080, 8081 …).</div>{% endif %}
+      <div class="list">
+        <div class="list-item"><span style="color:var(--ok)">{{ icon('check') }}</span><div class="grow"><b>testphp.vulnweb.com</b><small>Intentionally vulnerable test app (PHP/SQLi/XSS)</small></div>
+          <button class="btn btn-sm" type="button" data-fill="http://testphp.vulnweb.com">Use</button></div>
+        <div class="list-item"><span style="color:var(--cyan)">{{ icon('check') }}</span><div class="grow"><b>demo.testfire.net</b><small>Altoro Mutual sample bank app</small></div>
+          <button class="btn btn-sm" type="button" data-fill="http://demo.testfire.net">Use</button></div>
+        {% if lab %}{% for h in lab_hosts %}<div class="list-item"><span style="color:var(--purple)">{{ icon('server') }}</span><div class="grow"><b>{{ h }}</b><small>Local lab host</small></div>
+          <button class="btn btn-sm" type="button" data-fill="http://{{ h }}:3000">Use</button></div>{% endfor %}{% endif %}
+      </div>
+      <p class="field-hint" style="margin-top:1rem">Enter any valid HTTP or HTTPS URL in the scan configuration form. Cloud-metadata endpoints (e.g. 169.254.169.254) remain protected against SSRF.</p>
+    </div>
+    <div class="card" style="margin-top:1.6rem"><div class="card-title"><h3>What gets tested</h3></div>
+      <div class="list">
+        {% for ic, t in [('globe','Crawl pages, links, forms'),('layers','Security headers'),('key','Cookie flags'),('lock','TLS certificate &amp; protocol'),('server','Information disclosure'),('code','SQLi &amp; reflected XSS (safe probes)')] %}
+        <div class="list-item"><span style="color:var(--cyan)">{{ icon(ic) }}</span><div class="grow"><b>{{ t|safe }}</b></div></div>{% endfor %}
+      </div></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/scan.js') }}"></script>{% endblock %}

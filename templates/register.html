@@ -1,0 +1,20 @@
+{% extends 'layout_public.html' %}
+{% from '_macros.html' import icon, flashes %}
+{% block title %}Create account · WebGuard AI{% endblock %}
+{% block body %}
+<div class="auth-wrap"><div class="card auth-card">
+  <a class="brand" href="{{ url_for('dashboard.index') }}"><span class="brand-mark">{{ icon('shield') }}</span><span>WebGuard AI</span></a>
+  <h1>Create your account</h1><p class="lead">Start assessing authorized web applications.</p>
+  {{ flashes() }}
+  <form method="post" novalidate id="registerForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label for="full_name">Full name</label><input class="input" id="full_name" name="full_name" required minlength="2" maxlength="80" autocomplete="name" value="{{ form.full_name }}" placeholder="Jane Doe"></div>
+    <div class="field"><label for="email">Email address</label><input class="input" id="email" name="email" type="email" required autocomplete="email" value="{{ form.email }}" placeholder="you@example.com"></div>
+    <div class="field"><label for="password">Password</label><input class="input" id="password" name="password" type="password" required autocomplete="new-password" placeholder="Create a strong password">
+      <div class="pw-rules" id="pwRules"><span data-r="len">8+ characters</span><span data-r="low">lowercase</span><span data-r="up">uppercase</span><span data-r="num">number</span></div></div>
+    <div class="field"><label for="confirm_password">Confirm password</label><input class="input" id="confirm_password" name="confirm_password" type="password" required autocomplete="new-password" placeholder="Repeat password"><div class="field-error" id="matchErr"></div></div>
+    <button class="btn btn-primary btn-block" type="submit">Create account</button>
+  </form>
+  <div class="auth-foot">Already registered? <a href="{{ url_for('auth.login') }}">Log in</a></div>
+</div></div>
+{% endblock %}

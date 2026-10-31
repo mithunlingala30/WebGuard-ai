@@ -1,0 +1,19 @@
+{% extends 'layout_app.html' %}
+{% from '_macros.html' import icon %}
+{% block title %}Scan History{% endblock %}
+{% block heading %}Scan History{% endblock %}
+{% block sub %}Every assessment you have run{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="toolbar">
+    <input class="input" id="q" placeholder="Search by target URL…" aria-label="Search scans">
+    <select class="input" id="fStatus" style="max-width:190px" aria-label="Filter status"><option value="">All statuses</option>
+      {% for s in ['Completed','Running','Failed','Cancelled','Waiting'] %}<option>{{ s }}</option>{% endfor %}</select>
+    <button class="btn btn-primary no-dot" id="compareBtn" disabled>{{ icon('compare') }}Compare selected (<span id="selCount">0</span>)</button>
+  </div>
+  <div class="table-wrap"><table class="tbl"><thead><tr><th></th><th>ID</th><th>Target</th><th>Status</th><th>Findings</th><th>Risk</th><th>Started</th><th></th></tr></thead>
+    <tbody id="histBody"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody></table></div>
+</div>
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true"><div class="card modal" id="modalBody"></div></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/history.js') }}"></script>{% endblock %}

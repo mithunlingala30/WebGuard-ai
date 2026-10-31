@@ -1,0 +1,43 @@
+{% extends 'layout_app.html' %}
+{% from '_macros.html' import icon %}
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Security Dashboard{% endblock %}
+{% block sub %}Live overview of your assessments, from your scan database{% endblock %}
+{% block content %}
+<div class="grid g-4 keep2" id="statGrid" style="margin-bottom:1.6rem">
+  {% for id, label, ic, color in [
+    ('total_scans','Total scans','layers','var(--blue)'), ('completed','Completed scans','check','var(--ok)'),
+    ('running','Running scans','activity','var(--cyan)'), ('vulnerabilities','Total vulnerabilities','alert','var(--purple)'),
+    ('critical','Critical','alert','var(--crit)'), ('high','High','alert','var(--high)'),
+    ('medium','Medium','alert','var(--med)'), ('low','Low','alert','var(--low)')] %}
+  <div class="card stat hover"><div class="stat-ic" style="color:{{ color }}">{{ icon(ic) }}</div>
+    <div><b data-stat="{{ id }}">0</b><span>{{ label }}</span></div></div>
+  {% endfor %}
+</div>
+
+<div class="grid g-main" style="margin-bottom:1.6rem">
+  <div class="card"><div class="card-title"><h3>Scan activity · last 14 days</h3></div>
+    <div class="chart-box"><canvas id="activityChart" aria-label="Scan activity bar chart" role="img"></canvas></div></div>
+  <div class="card"><div class="card-title"><h3>Overall security risk</h3></div>
+    <div class="gauge" id="gauge"><svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="82" stroke="transparent"/><circle id="gaugeArc" cx="95" cy="95" r="82" stroke="var(--cyan)" stroke-dasharray="515" stroke-dashoffset="515" style="transition:stroke-dashoffset 1s, stroke .4s"/></svg>
+      <div class="val"><b id="riskScore">0</b><span id="riskLevel" class="muted">No data</span></div></div>
+    <p class="muted" style="text-align:center;font-size:.8rem;margin:1.2rem 0 1.2rem" id="riskNote">Run a scan to calculate your risk score.</p>
+    <a class="btn btn-primary btn-block" href="{{ url_for('scanner.new_scan') }}">Quick start new scan</a></div>
+</div>
+
+<div class="grid g-2" style="margin-bottom:1.6rem">
+  <div class="card"><div class="card-title"><h3>Vulnerability severity</h3></div>
+    <div class="chart-box" style="height:250px"><canvas id="sevChart" aria-label="Vulnerability severity pie chart" role="img"></canvas></div>
+    <div class="legend" id="sevLegend"></div></div>
+  <div class="card"><div class="card-title"><h3>Recent security findings</h3></div>
+    <div class="list" id="recentFindings"><div class="empty">Loading…</div></div></div>
+</div>
+
+<div class="card"><div class="card-title"><h3>Recent scan history</h3><a class="btn btn-sm" href="{{ url_for('history.history') }}">View all</a></div>
+  <div class="table-wrap"><table class="tbl"><thead><tr><th>Target</th><th>Status</th><th>Findings</th><th>Risk</th><th>Started</th></tr></thead>
+  <tbody id="recentScans"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody></table></div></div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/vendor/chart.umd.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

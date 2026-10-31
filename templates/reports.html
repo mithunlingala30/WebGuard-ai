@@ -1,0 +1,14 @@
+{% extends 'layout_app.html' %}
+{% from '_macros.html' import icon %}
+{% block title %}Reports{% endblock %}
+{% block heading %}Security Reports{% endblock %}
+{% block sub %}PDF and HTML reports generated from your stored findings{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-title"><h3>Completed scans</h3></div>
+  <div class="table-wrap"><table class="tbl"><thead><tr><th>ID</th><th>Target</th><th>Findings</th><th>Risk</th><th>Completed</th><th>Download</th></tr></thead>
+    <tbody id="repBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody></table></div>
+  <p class="field-hint">Each download is rebuilt from the current database records, so it always matches what the results page shows.</p>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/reports.js') }}"></script>{% endblock %}

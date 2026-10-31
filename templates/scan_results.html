@@ -1,0 +1,62 @@
+{% extends 'layout_app.html' %}
+{% from '_macros.html' import icon, status_badge %}
+{% block title %}Scan #{{ scan.id }}{% endblock %}
+{% block heading %}Scan #{{ scan.id }} Results{% endblock %}
+{% block sub %}<span class="url-cell" style="display:inline-block;max-width:60vw;vertical-align:bottom">{{ scan.target_url }}</span>{% endblock %}
+{% block content %}
+<div id="scanMeta" data-scan-id="{{ scan.id }}" data-active="{{ 'true' if scan.is_active else 'false' }}" hidden></div>
+
+<div class="card" id="liveCard" style="margin-bottom:1.6rem;{{ '' if scan.is_active else 'display:none' }}">
+  <div class="card-title"><h3>Scan in progress</h3><span id="liveStatus"></span></div>
+  <div style="text-align:right;font-weight:700;margin-bottom:.6rem" id="livePct">0%</div>
+  <div class="progress" id="liveBar"><i></i></div>
+  <div class="well" style="margin-top:1.2rem"><div class="activity" id="liveActivity">…</div></div>
+  <div style="margin-top:1.2rem"><button class="btn btn-danger btn-sm" id="cancelBtn">Cancel scan</button></div>
+</div>
+
+<div class="grid g-main" style="margin-bottom:1.6rem">
+  <div class="card"><div class="card-title"><h3>Scan summary</h3>{{ status_badge(scan.scan_status) }}</div>
+    <dl class="kv" id="summary">
+      <dt>Target URL</dt><dd class="mono">{{ scan.target_url }}</dd>
+      <dt>Scan ID</dt><dd>#{{ scan.id }} · {{ scan.scan_type|title }}</dd>
+      <dt>Started</dt><dd data-time="{{ scan.scan_start_time|iso }}">—</dd>
+      <dt>Completed</dt><dd data-time="{{ scan.scan_end_time|iso }}">—</dd>
+      <dt>Pages discovered</dt><dd id="sPages">{{ scan.pages_discovered }}</dd>
+      <dt>Tests completed</dt><dd id="sTests">{{ scan.tests_completed }}</dd>
+      <dt>Total findings</dt><dd id="sFind">{{ scan.total_findings }}</dd>
+      {% if scan.error_message and scan.scan_status != 'Completed' %}<dt>Message</dt><dd style="color:var(--med)">{{ scan.error_message }}</dd>{% endif %}
+    </dl>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.4rem">
+      {% if scan.scan_status == 'Completed' %}
+      <a class="btn btn-primary" href="{{ url_for('reports.download', scan_id=scan.id, fmt='pdf') }}">{{ icon('download') }}PDF report</a>
+      <a class="btn" href="{{ url_for('reports.download', scan_id=scan.id, fmt='html') }}">{{ icon('download') }}HTML report</a>{% endif %}
+      <a class="btn" href="{{ url_for('scanner.new_scan') }}">Re-scan</a></div></div>
+  <div class="card"><div class="card-title"><h3>Risk score</h3></div>
+    {% set col = {'None':'var(--ok)','Minimal':'var(--ok)','Low':'var(--low)','Moderate':'var(--med)','High':'var(--high)','Critical':'var(--crit)'}[scan.risk_level] %}
+    <div class="gauge"><svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="82" stroke="{{ col }}" stroke-dasharray="515" stroke-dashoffset="{{ 515 - (515 * scan.risk_score / 100) }}"/></svg>
+      <div class="val"><b>{{ scan.risk_score|round(0)|int }}</b><span style="color:{{ col }}">{{ scan.risk_level }}</span></div></div>
+    <p class="muted" style="text-align:center;font-size:.78rem;margin:1.2rem 0 0">0–100 · higher means riskier. Explainable rule-based scoring weighted by severity and evidence confidence.</p></div>
+</div>
+
+<div class="grid g-2" style="margin-bottom:1.6rem">
+  <div class="card"><div class="card-title"><h3>Severity distribution</h3></div>
+    <div class="chart-box" style="height:240px"><canvas id="sevChart" role="img" aria-label="Severity distribution pie chart"></canvas></div><div class="legend" id="sevLegend"></div></div>
+  <div class="card"><div class="card-title"><h3>Compared with previous scan</h3></div><div id="compare" class="muted">Loading comparison…</div></div>
+</div>
+
+<div class="card" style="margin-bottom:1.6rem"><div class="card-title"><h3>Findings</h3><span class="muted" id="findCount"></span></div>
+  <div class="toolbar">
+    <input class="input" id="q" placeholder="Search findings, URLs, evidence…" aria-label="Search findings">
+    <select class="input" id="fSev" style="max-width:170px" aria-label="Filter severity"><option value="">All severities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+    <select class="input" id="fType" style="max-width:220px" aria-label="Filter category"><option value="">All categories</option></select></div>
+  <div class="table-wrap"><table class="tbl"><thead><tr><th>#</th><th>Vulnerability</th><th>Severity</th><th>OWASP</th><th>Affected URL</th><th>Confidence</th></tr></thead>
+  <tbody id="findBody"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody></table></div></div>
+
+<div class="card"><div class="card-title"><h3>Scan log</h3></div><div class="console well" id="console"></div></div>
+
+<div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle"><div class="card modal" id="modalBody"></div></div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/vendor/chart.umd.js') }}"></script>
+<script src="{{ url_for('static', filename='js/results.js') }}"></script>
+{% endblock %}

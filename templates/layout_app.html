@@ -1,0 +1,59 @@
+{% from '_macros.html' import icon, flashes %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<title>{% block title %}Dashboard{% endblock %} · WebGuard AI</title>
+<link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neumorphism.css') }}">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <a class="brand" href="{{ url_for('dashboard.dashboard') }}">
+      <span class="brand-mark">{{ icon('shield') }}</span><span>WebGuard AI<small>Vulnerability Platform</small></span>
+    </a>
+    <nav class="nav">
+      <a href="{{ url_for('dashboard.dashboard') }}" class="{{ 'active' if active == 'dashboard' }}">{{ icon('grid') }}Dashboard</a>
+      <a href="{{ url_for('scanner.new_scan') }}" class="{{ 'active' if active == 'scan' }}">{{ icon('target') }}New Scan</a>
+      <a href="{{ url_for('history.history') }}" class="{{ 'active' if active == 'history' }}">{{ icon('clock') }}Scan History</a>
+      <a href="{{ url_for('reports.reports') }}" class="{{ 'active' if active == 'reports' }}">{{ icon('file') }}Reports</a>
+      <a href="{{ url_for('profile.profile') }}" class="{{ 'active' if active == 'profile' }}">{{ icon('user') }}My Profile</a>
+    </nav>
+    <div class="sidebar-foot">
+      <a class="user-chip" href="{{ url_for('profile.profile') }}"><span class="avatar">{{ current_user.initials }}</span>
+        <div><b>{{ current_user.full_name }}</b><span>{{ current_user.email }}</span></div></a>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-block" type="submit">{{ icon('logout') }}Sign out</button>
+      </form>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+  <main class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:1rem;min-width:0">
+        <button class="btn btn-icon menu-btn" id="menuBtn" aria-label="Open menu">{{ icon('menu') }}</button>
+        <div><h1>{% block heading %}{% endblock %}</h1><div class="sub">{% block sub %}{% endblock %}</div></div>
+      </div>
+      <div class="topbar-actions">
+        <div class="notif">
+          <button class="btn btn-icon" id="notifBtn" aria-label="Notifications">{{ icon('bell') }}<span class="notif-count" id="notifCount">0</span></button>
+          <div class="card notif-panel" id="notifPanel"><b>Notifications</b><div id="notifList"><div class="muted" style="font-size:.84rem;margin-top:.6rem">No new notifications.</div></div></div>
+        </div>
+        <a class="btn btn-primary hide-sm" href="{{ url_for('scanner.new_scan') }}">New Scan</a>
+      </div>
+    </header>
+    {{ flashes() }}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="{{ url_for('static', filename='js/vendor/socket.io.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,71 @@
+{% extends 'layout_public.html' %}
+{% from '_macros.html' import icon %}
+{% block title %}WebGuard AI · Intelligent Web Vulnerability Assessment{% endblock %}
+{% block body %}
+<header class="pub-nav">
+  <a class="brand" href="{{ url_for('dashboard.index') }}"><span class="brand-mark">{{ icon('shield') }}</span><span>WebGuard AI</span></a>
+  <nav class="pub-links">
+    <a class="l" href="#features">Features</a><a class="l" href="#how">How it works</a><a class="l" href="#modules">Modules</a>
+    {% if current_user.is_authenticated %}
+      <a class="btn btn-primary btn-sm" href="{{ url_for('dashboard.dashboard') }}">Open Dashboard</a>
+    {% else %}
+      <a class="btn btn-sm" href="{{ url_for('auth.login') }}">Log in</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('auth.register') }}">Get started</a>
+    {% endif %}
+  </nav>
+</header>
+
+<section class="container hero">
+  <div>
+    <span class="eyebrow">Ethical Hacking · Capstone Platform</span>
+    <h1>Find web vulnerabilities <em>before attackers do.</em></h1>
+    <p class="lead">WebGuard AI crawls authorized websites, runs real security checks, classifies every finding with explainable AI and hands you prioritized remediation plus downloadable reports.</p>
+    <div class="hero-cta">
+      {% if current_user.is_authenticated %}
+        <a class="btn btn-primary" href="{{ url_for('scanner.new_scan') }}">Start a new scan</a>
+      {% else %}
+        <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Create free account</a>
+        <a class="btn" href="{{ url_for('auth.login') }}">Log in</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="hero-visual"><div class="orb">{{ icon('shield') }}
+    <span class="sat a">{{ icon('cpu') }}</span><span class="sat b">{{ icon('alert') }}</span><span class="sat c">{{ icon('check') }}</span></div></div>
+</section>
+
+<section class="section" id="features"><div class="container">
+  <div class="section-head"><h2>Built like a commercial security product</h2><p>Every number you see comes from real scans stored in your database. No sample data, no fake results.</p></div>
+  <div class="grid g-3">
+    {% for ic, t, d in [
+      ('search','Real vulnerability scanning','A Python engine with crawler, SQL injection, XSS, header, cookie, TLS and exposure checks.'),
+      ('cpu','Explainable AI analysis','Transparent classification with OWASP mapping, severity, confidence, false-positive reduction and scikit-learn de-duplication.'),
+      ('activity','Live scan progress','Background workers stream real progress and activity to your browser over WebSockets.'),
+      ('lock','Safety by design','Authorized-domain allow-list, SSRF protection, DNS and redirect revalidation, rate limits and non-destructive tests only.'),
+      ('compare','History &amp; comparison','Keep every scan, then compare runs to see what is new, resolved or still open.'),
+      ('file','PDF &amp; HTML reports','One click exports built from your actual findings, ready for a client or a viva.')] %}
+    <div class="card feature hover"><div class="stat-ic" style="color:var(--cyan)">{{ icon(ic) }}</div><h3>{{ t|safe }}</h3><p>{{ d|safe }}</p></div>
+    {% endfor %}
+  </div></div></section>
+
+<section class="section" id="how"><div class="container">
+  <div class="section-head"><h2>How it works</h2><p>From URL to remediation plan in four steps.</p></div>
+  <div class="grid g-4 how">
+    {% for n, t, d in [(1,'Authorize','Enter a target on the authorized list and confirm you have permission.'),(2,'Scan','The engine crawls and tests the site with safe, controlled checks.'),(3,'Analyze','AI classifies severity, removes duplicates and ranks priorities.'),(4,'Remediate','Follow clear fix guidance and export a report.')] %}
+    <div class="card hover"><div class="num">{{ n }}</div><h3>{{ t }}</h3><p class="muted" style="margin:0;font-size:.9rem">{{ d }}</p></div>
+    {% endfor %}
+  </div></div></section>
+
+<section class="section" id="modules"><div class="container">
+  <div class="section-head"><h2>Security assessment modules</h2></div>
+  <div class="modules">
+    {% for ic, t in [('globe','Website crawler'),('code','SQL injection checker'),('zap','XSS checker'),('layers','Security headers'),('key','Cookie security'),('lock','SSL / TLS checker'),('server','Information disclosure')] %}
+    <div class="module">{{ icon(ic) }}{{ t }}</div>{% endfor %}
+  </div></div></section>
+
+<section class="section"><div class="container">
+  <div class="card cta"><h2>Ready to assess your first target?</h2>
+    <p class="muted">For authorized testing only. WebGuard AI refuses unlisted and internal targets.</p>
+    <a class="btn btn-primary" href="{{ url_for('auth.register' if not current_user.is_authenticated else 'scanner.new_scan') }}">{{ 'Get started' if not current_user.is_authenticated else 'New scan' }}</a></div>
+</div></section>
+<footer class="footer">© WebGuard AI · Academic capstone project for Ethical Hacking · Use only on systems you are authorized to test.</footer>
+{% endblock %}

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebGuard AI Report · Scan #{{ scan.id }}</title>
+  <style>
+    body {
+      font: 15px/1.6 -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #1c2540;
+      background: #eef1f8;
+      margin: 0;
+      padding: 32px 16px
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 12px 40px rgba(20, 32, 61, .12);
+      overflow: hidden
+    }
+
+    header {
+      background: #14203d;
+      color: #fff;
+      padding: 32px 40px
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 26px
+    }
+
+    header p {
+      margin: 4px 0 0;
+      color: #9fb0dd
+    }
+
+    section {
+      padding: 28px 40px;
+      border-top: 1px solid #e3e7f2
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 0 0 14px;
+      color: #14203d
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%
+    }
+
+    td,
+    th {
+      padding: 8px 10px;
+      border: 1px solid #dde2ef;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px
+    }
+
+    th {
+      background: #f2f4fa;
+      width: 190px
+    }
+
+    .sev {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 99px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px
+    }
+
+    .grid {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .box {
+      flex: 1;
+      min-width: 120px;
+      border-radius: 12px;
+      padding: 14px;
+      color: #fff;
+      text-align: center
+    }
+
+    .box b {
+      display: block;
+      font-size: 26px
+    }
+
+    .finding {
+      border: 1px solid #dde2ef;
+      border-left-width: 5px;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      page-break-inside: avoid
+    }
+
+    .finding h3 {
+      margin: 0 0 8px;
+      font-size: 16px
+    }
+
+    .finding h4 {
+      margin: 14px 0 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #6b7390
+    }
+
+    pre {
+      background: #f3f5fb;
+      padding: 12px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12.5px;
+      margin: 0
+    }
+
+    footer {
+      padding: 20px 40px;
+      color: #6b7390;
+      font-size: 12px;
+      border-top: 1px solid #e3e7f2
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0
+      }
+
+      .page {
+        box-shadow: none
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <h1>WebGuard AI — Vulnerability Assessment Report</h1>
+      <p>Scan #{{ scan.id }} · generated {{ generated_at }}</p>
+    </header>
+    <section>
+      <h2>Scan summary</h2>
+      <table>
+        <tr>
+          <th>Target URL</th>
+          <td>{{ scan.target_url }}</td>
+        </tr>
+        <tr>
+          <th>Scan type</th>
+          <td>{{ scan.scan_type|title }}</td>
+        </tr>
+        <tr>
+          <th>Started</th>
+          <td>{{ scan.scan_start_time.strftime('%Y-%m-%d %H:%M:%S UTC') if scan.scan_start_time else '-' }}</td>
+        </tr>
+        <tr>
+          <th>Completed</th>
+          <td>{{ scan.scan_end_time.strftime('%Y-%m-%d %H:%M:%S UTC') if scan.scan_end_time else '-' }}</td>
+        </tr>
+        <tr>
+          <th>Status</th>
+          <td>{{ scan.scan_status }}</td>
+        </tr>
+        <tr>
+          <th>Pages discovered</th>
+          <td>{{ scan.pages_discovered }}</td>
+        </tr>
+        <tr>
+          <th>Tests completed</th>
+          <td>{{ scan.tests_completed }}</td>
+        </tr>
+        <tr>
+          <th>Total findings</th>
+          <td>{{ scan.total_findings }}</td>
+        </tr>
+        <tr>
+          <th>Risk score</th>
+          <td><b>{{ scan.risk_score }}</b> / 100 ({{ scan.risk_level }})</td>
+        </tr>
+      </table>
+    </section>
+    <section>
+      <h2>Severity distribution</h2>
+      <div class="grid">
+        {% for s in ['Critical','High','Medium','Low'] %}<div class="box" style="background:{{ colors[s] }}"><b>{{
+            counts[s] }}</b>{{ s }}</div>{% endfor %}</div>
+    </section>
+    <section>
+      <h2>Findings (prioritized)</h2>
+      {% for f in findings %}
+      <div class="finding" style="border-left-color:{{ colors[f.severity] }}">
+        <h3>#{{ f.priority }} <span class="sev" style="background:{{ colors[f.severity] }}">{{ f.severity }}</span> {{
+          f.name }}</h3>
+        <table>
+          <tr>
+            <th>OWASP category</th>
+            <td>{{ f.owasp }}</td>
+          </tr>
+          <tr>
+            <th>Affected URL</th>
+            <td>{{ f.url }}</td>
+          </tr>
+          {% if f.param %}<tr>
+            <th>Parameter</th>
+            <td>{{ f.param }}</td>
+          </tr>{% endif %}
+          <tr>
+            <th>Confidence</th>
+            <td>{{ f.confidence }} ({{ f.status }})</td>
+          </tr>
+          <tr>
+            <th>Priority</th>
+            <td>{{ f.priority_label }}</td>
+          </tr>
+        </table>
+        <h4>Description</h4>
+        <div>{{ f.description }}</div>
+        <h4>Detection evidence</h4>
+        <pre>{{ f.evidence }}</pre>
+        <h4>Potential impact</h4>
+        <div>{{ f.impact }}</div>
+        <h4>Remediation</h4>
+        <div>{{ f.recommendation }}</div>
+      </div>
+      {% else %}<p>No findings were reported for this scan.</p>{% endfor %}
+    </section>
+    <footer>Classification method: explainable rule-based analysis with scikit-learn similarity de-duplication. Results
+      reflect only the checks performed on the date of the scan and are not a guarantee of security. Authorized testing
+      only.</footer>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+{% extends 'layout_public.html' %}
+{% from '_macros.html' import icon, flashes %}
+{% block title %}Log in · WebGuard AI{% endblock %}
+{% block body %}
+<div class="auth-wrap"><div class="card auth-card">
+  <a class="brand" href="{{ url_for('dashboard.index') }}"><span class="brand-mark">{{ icon('shield') }}</span><span>WebGuard AI</span></a>
+  <h1>Welcome back</h1><p class="lead">Sign in to continue your security assessments.</p>
+  {{ flashes() }}
+  <form method="post" novalidate id="loginForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label for="email">Email address</label><input class="input" id="email" name="email" type="email" autocomplete="email" required value="{{ email }}" placeholder="you@example.com"></div>
+    <div class="field"><label for="password">Password</label><input class="input" id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
+    <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+  </form>
+  <div class="auth-foot">New to WebGuard AI? <a href="{{ url_for('auth.register') }}">Create an account</a></div>
+</div></div>
+{% endblock %}
