@@ -328,8 +328,3 @@ This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for d
 <div align="center">
 Made with ❤️ for the security community · <a href="https://github.com/mithunlingala30/WebGuard-ai">GitHub</a>
 </div>
-
-   W e b G u a r d - a i  
- #   W e b G u a r d - a i  
- #   W e b G u a r d - a i  
- 
